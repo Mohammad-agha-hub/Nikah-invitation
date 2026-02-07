@@ -1,23 +1,139 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Music, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 
-const NikkaInvitation = () => {
+const GreenNikahInvitation = () => {
+  const [started, setStarted] = useState(false);
   const [curtainsOpen, setCurtainsOpen] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const audioRef = useRef(null);
   const canvasRef = useRef(null);
+  const landingCanvasRef = useRef(null);
 
   useEffect(() => {
-    const curtainTimer = setTimeout(() => setCurtainsOpen(true), 1500);
-    const musicTimer = setTimeout(() => {
-      if (audioRef.current) {
-        audioRef.current
-          .play()
-          .catch((error) => console.log("Audio autoplay prevented:", error));
-        setMusicPlaying(true);
+    // Landing page particle animation
+    const landingCanvas = landingCanvasRef.current;
+    if (!landingCanvas) return;
+
+    const ctx = landingCanvas.getContext("2d");
+    landingCanvas.width = window.innerWidth;
+    landingCanvas.height = window.innerHeight;
+
+    class Particle {
+      constructor() {
+        this.reset();
       }
-    }, 2000);
+
+      reset() {
+        this.x = Math.random() * landingCanvas.width;
+        this.y = Math.random() * landingCanvas.height;
+        this.z = Math.random() * 1500;
+        this.radius = Math.random() * 2 + 0.5;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.vz = Math.random() * 1.5 + 0.8;
+        const colors = [
+          { r: 212, g: 175, b: 55 },
+          { r: 255, g: 215, b: 0 },
+          { r: 34, g: 139, b: 34 },
+        ];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        this.z -= this.vz;
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.z < 1) {
+          this.reset();
+          this.z = 1500;
+        }
+        if (this.x < 0 || this.x > landingCanvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > landingCanvas.height) this.vy *= -1;
+      }
+
+      draw() {
+        const scale = 1000 / (1000 + this.z);
+        const x2d =
+          (this.x - landingCanvas.width / 2) * scale + landingCanvas.width / 2;
+        const y2d =
+          (this.y - landingCanvas.height / 2) * scale +
+          landingCanvas.height / 2;
+        const radius = this.radius * scale;
+        const alpha = (1500 - this.z) / 1500;
+
+        const gradient = ctx.createRadialGradient(
+          x2d,
+          y2d,
+          0,
+          x2d,
+          y2d,
+          radius * 8,
+        );
+        gradient.addColorStop(
+          0,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.6})`,
+        );
+        gradient.addColorStop(
+          0.4,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.3})`,
+        );
+        gradient.addColorStop(
+          1,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0)`,
+        );
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x2d, y2d, radius * 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = `rgba(${this.color.r + 40}, ${this.color.g + 40}, ${this.color.b + 40}, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x2d, y2d, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const particles = Array.from({ length: 120 }, () => new Particle());
+
+    const animate = () => {
+      ctx.clearRect(0, 0, landingCanvas.width, landingCanvas.height);
+      particles.forEach((particle) => {
+        particle.update();
+        particle.draw();
+      });
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    const handleResize = () => {
+      landingCanvas.width = window.innerWidth;
+      landingCanvas.height = window.innerHeight;
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+
+    const curtainTimer = setTimeout(() => {
+      setCurtainsOpen(true);
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current
+            .play()
+            .catch((error) => console.log("Audio play prevented:", error));
+          setMusicPlaying(true);
+        }
+      }, 500);
+    }, 500);
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -102,8 +218,7 @@ const NikkaInvitation = () => {
     const particles = Array.from({ length: 120 }, () => new Particle());
 
     const animate = () => {
-      ctx.fillStyle = "rgba(10, 30, 20, 0.2)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach((particle) => {
         particle.update();
         particle.draw();
@@ -122,10 +237,13 @@ const NikkaInvitation = () => {
 
     return () => {
       clearTimeout(curtainTimer);
-      clearTimeout(musicTimer);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [started]);
+
+  const handleStart = () => {
+    setStarted(true);
+  };
 
   const toggleMusic = () => {
     if (audioRef.current) {
@@ -232,13 +350,255 @@ const NikkaInvitation = () => {
     </svg>
   );
 
+  if (!started) {
+    return (
+      <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#0a1e14] via-[#1a3d2e] to-[#0a1e14] flex items-center justify-center">
+        <canvas ref={landingCanvasRef} className="fixed inset-0 z-0" />
+
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2e7d32]/30 via-transparent to-transparent pointer-events-none z-10" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-[#D4AF37]/20 via-transparent to-transparent pointer-events-none z-10" />
+
+        <div className="relative z-40 text-center px-4 animate-fade-in-landing">
+          <div className="mb-12">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#2e7d32] to-[#4caf50] blur-2xl opacity-15 animate-pulse-slow" />
+              <svg
+                width="120"
+                height="120"
+                viewBox="0 0 120 120"
+                className="mx-auto mb-6 relative animate-float"
+              >
+                <defs>
+                  <linearGradient
+                    id="ringGrad"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
+                    <stop offset="0%" stopColor="#FFD700" />
+                    <stop offset="50%" stopColor="#D4AF37" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                </defs>
+                <circle
+                  cx="35"
+                  cy="60"
+                  r="25"
+                  fill="none"
+                  stroke="url(#ringGrad)"
+                  strokeWidth="4"
+                  opacity="0.9"
+                />
+                <circle
+                  cx="85"
+                  cy="60"
+                  r="25"
+                  fill="none"
+                  stroke="url(#ringGrad)"
+                  strokeWidth="4"
+                  opacity="0.9"
+                />
+                <path
+                  d="M 60 35 L 60 50"
+                  stroke="url(#ringGrad)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+                <circle cx="60" cy="30" r="8" fill="#FFD700" opacity="0.9" />
+                <g transform="translate(60, 28)">
+                  <path
+                    d="M 0,-6 L 4,-2 L 4,2 L 0,6 L -4,2 L -4,-2 Z"
+                    fill="#FFD700"
+                    stroke="#FFF8DC"
+                    strokeWidth="0.5"
+                  />
+                  <path
+                    d="M 0,-6 L 2,-2 L 0,0 L -2,-2 Z"
+                    fill="#FFF8DC"
+                    opacity="0.9"
+                  />
+                  <line
+                    x1="-3"
+                    y1="-2"
+                    x2="-1"
+                    y2="2"
+                    stroke="#FFF8DC"
+                    strokeWidth="0.3"
+                    opacity="0.7"
+                  />
+                  <line
+                    x1="0"
+                    y1="-2"
+                    x2="0"
+                    y2="2"
+                    stroke="#FFF8DC"
+                    strokeWidth="0.3"
+                    opacity="0.7"
+                  />
+                  <line
+                    x1="3"
+                    y1="-2"
+                    x2="1"
+                    y2="2"
+                    stroke="#FFF8DC"
+                    strokeWidth="0.3"
+                    opacity="0.7"
+                  />
+                </g>
+              </svg>
+            </div>
+
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-great-vibes text-[#d0b206] mb-4 leading-tight animate-slide-down">
+              You're Invited
+            </h1>
+            <p
+              className="text-lg sm:text-xl md:text-2xl font-arabic text-[#ffffffdc] mb-2 animate-slide-down"
+              style={{ animationDelay: "0.2s" }}
+            >
+              To a Sacred Union
+            </p>
+            <div
+              className="flex items-center justify-center gap-3 my-4 animate-slide-down"
+              style={{ animationDelay: "0.3s" }}
+            >
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#FFD700]" />
+              <svg width="12" height="12" viewBox="0 0 16 16">
+                <path
+                  d="M8 2 L10 6 L14 8 L10 10 L8 14 L6 10 L2 8 L6 6 Z"
+                  fill="#FFD700"
+                />
+              </svg>
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#FFD700]" />
+            </div>
+            <p
+              className="text-sm sm:text-base font-cinzel text-[#caa30a] tracking-[0.3em] uppercase animate-slide-down"
+              style={{ animationDelay: "0.4s" }}
+            >
+              Nikah Ceremony
+            </p>
+          </div>
+
+          <button
+            onClick={handleStart}
+            className="group relative animate-scale-in"
+            style={{ animationDelay: "0.6s" }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity animate-pulse-slow" />
+            <div className="relative bg-gradient-to-r from-[#1a4d3a] to-[#2e7d32] px-12 py-5 rounded-full border-2 border-[#D4AF37] shadow-2xl group-hover:scale-105 group-hover:border-[#FFD700] transition-all duration-300">
+              <span className="text-xl font-cinzel text-[#edece4] tracking-[0.2em] uppercase group-hover:tracking-[0.25em] transition-all duration-300">
+                Open Invitation
+              </span>
+            </div>
+          </button>
+
+          <p
+            className="mt-8 text-sm font-cinzel text-[#FFF8DC]/60 tracking-wider animate-fade-in"
+            style={{ animationDelay: "0.8s" }}
+          >
+            Click to reveal
+          </p>
+        </div>
+
+        <style jsx>{`
+          @import url("https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap");
+          @import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap");
+          @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap");
+          @import url("https://fonts.googleapis.com/css2?family=Mea+Culpa&display=swap");
+
+          @keyframes fade-in-landing {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
+          @keyframes slide-down {
+            from {
+              opacity: 0;
+              transform: translateY(-30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes scale-in {
+            from {
+              opacity: 0;
+              transform: scale(0.9);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+
+          @keyframes pulse-slow {
+            0%,
+            100% {
+              opacity: 0.1;
+            }
+            50% {
+              opacity: 0.2;
+            }
+          }
+
+          @keyframes float {
+            0%,
+            100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-10px);
+            }
+          }
+
+          .animate-fade-in-landing {
+            animation: fade-in-landing 1.5s ease-out forwards;
+          }
+
+          .animate-slide-down {
+            animation: slide-down 1s ease-out forwards;
+            opacity: 0;
+          }
+
+          .animate-scale-in {
+            animation: scale-in 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+          }
+
+          .animate-pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
+          }
+
+          .animate-float {
+            animation: float 3s ease-in-out infinite;
+          }
+
+          .font-great-vibes {
+            font-family: "Mea Culpa", cursive;
+          }
+          .font-arabic {
+            font-family: "Amiri", serif;
+          }
+          .font-cinzel {
+            font-family: "Cinzel", serif;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#0a1e14] via-[#1a3d2e] to-[#0a1e14] flex items-center justify-center">
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
       <audio
         ref={audioRef}
         loop
-        autoPlay
         src="/public_Indila_-_Love_story_Orchestra_Version_Slowed_Reverb_256kbps.webm"
       />
 
@@ -304,12 +664,10 @@ const NikkaInvitation = () => {
       <div
         className={`relative z-40 w-full max-w-[380px] sm:max-w-md md:max-w-xl lg:max-w-2xl mx-4 py-4 sm:py-6 md:py-8 transition-all duration-1500 delay-1000 ${curtainsOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
-        {/* Animated Lanterns on Left Side - OUTSIDE THE CARD */}
+        {/* Animated Lanterns on Left Side */}
         <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full -ml-2 md:-ml-6 z-30">
-          {/* Hanging hook at top */}
           <div className="absolute -top-8 left-1/2 -translate-x-1/2">
             <svg width="40" height="40" viewBox="0 0 40 40">
-              {/* Hook base */}
               <circle
                 cx="20"
                 cy="8"
@@ -319,7 +677,6 @@ const NikkaInvitation = () => {
                 strokeWidth="1"
               />
               <rect x="18" y="8" width="4" height="6" fill="#8B7355" />
-              {/* Decorative ring */}
               <circle
                 cx="20"
                 cy="8"
@@ -338,6 +695,19 @@ const NikkaInvitation = () => {
               viewBox="0 0 80 120"
               className="drop-shadow-2xl md:w-[70px] md:h-[110px]"
             >
+              <defs>
+                <linearGradient
+                  id="lantern-gradient-left"
+                  x1="0%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#2d5a3d" stopOpacity="0.9" />
+                  <stop offset="50%" stopColor="#1e4d2b" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#2d5a3d" stopOpacity="0.9" />
+                </linearGradient>
+              </defs>
               <line
                 x1="40"
                 y1="0"
@@ -369,27 +739,12 @@ const NikkaInvitation = () => {
                 stroke="#D4AF37"
                 strokeWidth="0.5"
               />
-              <line
-                x1="40"
-                y1="40"
-                x2="40"
-                y2="75"
-                stroke="#D4AF37"
-                strokeWidth="0.5"
-                opacity="0.6"
-              />
               <circle
                 cx="40"
                 cy="55"
                 r="3"
                 fill="#FFD700"
                 className="lantern-glow"
-              />
-              <path
-                d="M 32 45 L 48 45 M 32 50 L 48 50 M 32 60 L 48 60 M 32 65 L 48 65 M 32 70 L 48 70"
-                stroke="#D4AF37"
-                strokeWidth="0.3"
-                opacity="0.4"
               />
               <ellipse cx="40" cy="82" rx="10" ry="3" fill="#8B7355" />
               <path
@@ -433,29 +788,14 @@ const NikkaInvitation = () => {
                   strokeWidth="1"
                 />
               </g>
-              <defs>
-                <linearGradient
-                  id="lantern-gradient-left"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#1e4d2b" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                </linearGradient>
-              </defs>
             </svg>
           </div>
         </div>
 
-        {/* Animated Lanterns on Right Side - OUTSIDE THE CARD */}
+        {/* Animated Lanterns on Right Side */}
         <div className="hidden sm:block absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full mr-2 md:mr-6 z-30">
-          {/* Hanging hook at top */}
           <div className="absolute -top-8 left-1/2 -translate-x-1/2">
             <svg width="40" height="40" viewBox="0 0 40 40">
-              {/* Hook base */}
               <circle
                 cx="20"
                 cy="8"
@@ -465,7 +805,6 @@ const NikkaInvitation = () => {
                 strokeWidth="1"
               />
               <rect x="18" y="8" width="4" height="6" fill="#8B7355" />
-              {/* Decorative ring */}
               <circle
                 cx="20"
                 cy="8"
@@ -484,6 +823,19 @@ const NikkaInvitation = () => {
               viewBox="0 0 80 120"
               className="drop-shadow-2xl md:w-[70px] md:h-[110px]"
             >
+              <defs>
+                <linearGradient
+                  id="lantern-gradient-right"
+                  x1="0%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#2d5a3d" stopOpacity="0.9" />
+                  <stop offset="50%" stopColor="#1e4d2b" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#2d5a3d" stopOpacity="0.9" />
+                </linearGradient>
+              </defs>
               <line
                 x1="40"
                 y1="0"
@@ -515,27 +867,12 @@ const NikkaInvitation = () => {
                 stroke="#D4AF37"
                 strokeWidth="0.5"
               />
-              <line
-                x1="40"
-                y1="40"
-                x2="40"
-                y2="75"
-                stroke="#D4AF37"
-                strokeWidth="0.5"
-                opacity="0.6"
-              />
               <circle
                 cx="40"
                 cy="55"
                 r="3"
                 fill="#FFD700"
                 className="lantern-glow"
-              />
-              <path
-                d="M 32 45 L 48 45 M 32 50 L 48 50 M 32 60 L 48 60 M 32 65 L 48 65 M 32 70 L 48 70"
-                stroke="#D4AF37"
-                strokeWidth="0.3"
-                opacity="0.4"
               />
               <ellipse cx="40" cy="82" rx="10" ry="3" fill="#8B7355" />
               <path
@@ -579,19 +916,6 @@ const NikkaInvitation = () => {
                   strokeWidth="1"
                 />
               </g>
-              <defs>
-                <linearGradient
-                  id="lantern-gradient-right"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#1e4d2b" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                </linearGradient>
-              </defs>
             </svg>
           </div>
         </div>
@@ -681,7 +1005,7 @@ const NikkaInvitation = () => {
                 <p className="text-xl sm:text-2xl md:text-3xl pb-4 font-arabic mb-2 text-[#FFD700]">
                   بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                 </p>
-                <p className="text-[10px] sm:text-xs text-[#FFF8DC] font-cinzel font-light tracking-[0.2em] uppercase">
+                <p className="sm:sm text-[#FFF8DC] font-cinzel font-light tracking-[0.2em] uppercase">
                   In The Name Of Allah, Most Gracious, Most Merciful
                 </p>
               </div>
@@ -695,10 +1019,10 @@ const NikkaInvitation = () => {
                   <p className="text-lg sm:text-xl md:text-2xl font-arabic mb-2 text-[#FFD700] leading-relaxed">
                     خَلَقْنَاكُمْ أَزْوَاجًا
                   </p>
-                  <p className="text-xs sm:text-sm md:text-base text-[#FFF8DC] leading-relaxed italic font-light">
+                  <p className="text-sm md:text-base text-[#FFF8DC] leading-relaxed italic font-light">
                     "And We created you in pairs"
                   </p>
-                  <p className="text-[10px] sm:text-sm text-[#D4AF37] mt-2 font-cinzel">
+                  <p className=" sm:text-sm text-[#D4AF37] mt-2 font-cinzel">
                     (Quran 78:8)
                   </p>
                 </div>
@@ -728,16 +1052,16 @@ const NikkaInvitation = () => {
                 className="text-center mb-5 sm:mb-6 animate-fade-in-up"
                 style={{ animationDelay: "1.8s" }}
               >
-                <p className="text-[10px] sm:text-xs md:text-sm text-[#FFF8DC] font-cinzel tracking-[0.2em] sm:tracking-[0.25em] mb-3 sm:mb-4 uppercase px-2 sm:px-4">
+                <p className="text-[11px] sm:text-xs md:text-sm text-[#FFF8DC] font-cinzel tracking-[0.2em] sm:tracking-[0.25em] mb-3 sm:mb-4 uppercase px-2 sm:px-4">
                   Request the pleasure of your company
                   <br className="hidden sm:block" />
                   <span className="sm:hidden"> </span>
                   on the auspicious occasion of the
                 </p>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-great-vibes text-[#FFD700] mb-1 leading-tight px-2">
+                <h1 className="text-4xl md:text-5xl font-great-vibes text-[#FFD700] mb-1 leading-tight px-2">
                   Nikah Ceremony
                 </h1>
-                <p className="text-base sm:text-lg md:text-xl font-allura text-[#D4AF37] mt-1">
+                <p className="text-lg md:text-xl font-allura text-[#D4AF37] mt-1">
                   of
                 </p>
               </div>
@@ -764,7 +1088,7 @@ const NikkaInvitation = () => {
                 </h2>
               </div>
 
-              {/* Event Details - Enhanced */}
+              {/* Event Details */}
               <div
                 className="text-center mb-5 sm:mb-6 animate-scale-in"
                 style={{ animationDelay: "2.2s" }}
@@ -1042,4 +1366,4 @@ const NikkaInvitation = () => {
   );
 };
 
-export default NikkaInvitation;
+export default GreenNikahInvitation;
