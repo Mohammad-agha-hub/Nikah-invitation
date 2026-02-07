@@ -238,7 +238,8 @@ const NikkaInvitation = () => {
       <audio
         ref={audioRef}
         loop
-        src="https://cdn.pixabay.com/audio/2022/03/10/audio_4f5c0a36c3.mp3"
+        autoPlay
+        src="/public_Indila_-_Love_story_Orchestra_Version_Slowed_Reverb_256kbps.webm"
       />
 
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2e7d32]/30 via-transparent to-transparent pointer-events-none z-10" />
@@ -301,7 +302,7 @@ const NikkaInvitation = () => {
 
       {/* Main Content */}
       <div
-        className={`relative z-40 w-full max-w-xs sm:max-w-md md:max-w-xl lg:max-w-2xl mx-4 py-4 sm:py-6 md:py-8 transition-all duration-1500 delay-1000 ${curtainsOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+        className={`relative z-40 w-full max-w-[380px] sm:max-w-md md:max-w-xl lg:max-w-2xl mx-4 py-4 sm:py-6 md:py-8 transition-all duration-1500 delay-1000 ${curtainsOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
         {/* Animated Lanterns on Left Side - OUTSIDE THE CARD */}
         <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full -ml-2 md:-ml-6 z-30">
