@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 
-const GreenNikahInvitation = () => {
+const MaroonNikahInvitation = () => {
   const [started, setStarted] = useState(false);
   const [curtainsOpen, setCurtainsOpen] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false);
@@ -11,7 +11,7 @@ const GreenNikahInvitation = () => {
   const landingCanvasRef = useRef(null);
 
   useEffect(() => {
-    // Landing page particle animation
+    // Landing page stars animation
     const landingCanvas = landingCanvasRef.current;
     if (!landingCanvas) return;
 
@@ -19,7 +19,7 @@ const GreenNikahInvitation = () => {
     landingCanvas.width = window.innerWidth;
     landingCanvas.height = window.innerHeight;
 
-    class Particle {
+    class Star {
       constructor() {
         this.reset();
       }
@@ -27,56 +27,47 @@ const GreenNikahInvitation = () => {
       reset() {
         this.x = Math.random() * landingCanvas.width;
         this.y = Math.random() * landingCanvas.height;
-        this.z = Math.random() * 1500;
-        this.radius = Math.random() * 2 + 0.5;
-        this.vx = (Math.random() - 0.5) * 0.3;
-        this.vy = (Math.random() - 0.5) * 0.3;
-        this.vz = Math.random() * 1.5 + 0.8;
+        this.size = Math.random() * 2.5 + 0.5;
+        this.speed = Math.random() * 0.5 + 0.1;
+        this.opacity = Math.random() * 0.8 + 0.2;
+        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+        this.twinklePhase = Math.random() * Math.PI * 2;
         const colors = [
-          { r: 212, g: 175, b: 55 },
           { r: 255, g: 215, b: 0 },
-          { r: 34, g: 139, b: 34 },
+          { r: 212, g: 175, b: 55 },
+          { r: 255, g: 223, b: 128 },
         ];
         this.color = colors[Math.floor(Math.random() * colors.length)];
       }
 
       update() {
-        this.z -= this.vz;
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.z < 1) {
-          this.reset();
-          this.z = 1500;
+        this.y += this.speed;
+        this.twinklePhase += this.twinkleSpeed;
+        if (this.y > landingCanvas.height) {
+          this.y = -10;
+          this.x = Math.random() * landingCanvas.width;
         }
-        if (this.x < 0 || this.x > landingCanvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > landingCanvas.height) this.vy *= -1;
       }
 
       draw() {
-        const scale = 1000 / (1000 + this.z);
-        const x2d =
-          (this.x - landingCanvas.width / 2) * scale + landingCanvas.width / 2;
-        const y2d =
-          (this.y - landingCanvas.height / 2) * scale +
-          landingCanvas.height / 2;
-        const radius = this.radius * scale;
-        const alpha = (1500 - this.z) / 1500;
+        const twinkle = Math.sin(this.twinklePhase) * 0.5 + 0.5;
+        const currentOpacity = this.opacity * twinkle;
 
         const gradient = ctx.createRadialGradient(
-          x2d,
-          y2d,
+          this.x,
+          this.y,
           0,
-          x2d,
-          y2d,
-          radius * 8,
+          this.x,
+          this.y,
+          this.size * 4,
         );
         gradient.addColorStop(
           0,
-          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.6})`,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${currentOpacity * 0.8})`,
         );
         gradient.addColorStop(
-          0.4,
-          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.3})`,
+          0.5,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${currentOpacity * 0.4})`,
         );
         gradient.addColorStop(
           1,
@@ -85,23 +76,34 @@ const GreenNikahInvitation = () => {
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(x2d, y2d, radius * 8, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = `rgba(${this.color.r + 40}, ${this.color.g + 40}, ${this.color.b + 40}, ${alpha})`;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.twinklePhase * 0.5);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${currentOpacity})`;
         ctx.beginPath();
-        ctx.arc(x2d, y2d, radius, 0, Math.PI * 2);
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+          const x = Math.cos(angle) * this.size;
+          const y = Math.sin(angle) * this.size;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
         ctx.fill();
+        ctx.restore();
       }
     }
 
-    const particles = Array.from({ length: 120 }, () => new Particle());
+    const stars = Array.from({ length: 150 }, () => new Star());
 
     const animate = () => {
       ctx.clearRect(0, 0, landingCanvas.width, landingCanvas.height);
-      particles.forEach((particle) => {
-        particle.update();
-        particle.draw();
+      stars.forEach((star) => {
+        star.update();
+        star.draw();
       });
       requestAnimationFrame(animate);
     };
@@ -142,7 +144,7 @@ const GreenNikahInvitation = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    class Particle {
+    class Star {
       constructor() {
         this.reset();
       }
@@ -150,53 +152,47 @@ const GreenNikahInvitation = () => {
       reset() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.z = Math.random() * 1500;
-        this.radius = Math.random() * 2 + 0.5;
-        this.vx = (Math.random() - 0.5) * 0.3;
-        this.vy = (Math.random() - 0.5) * 0.3;
-        this.vz = Math.random() * 1.5 + 0.8;
+        this.size = Math.random() * 2.5 + 0.5;
+        this.speed = Math.random() * 0.5 + 0.1;
+        this.opacity = Math.random() * 0.8 + 0.2;
+        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+        this.twinklePhase = Math.random() * Math.PI * 2;
         const colors = [
-          { r: 212, g: 175, b: 55 },
           { r: 255, g: 215, b: 0 },
-          { r: 34, g: 139, b: 34 },
+          { r: 212, g: 175, b: 55 },
+          { r: 255, g: 223, b: 128 },
         ];
         this.color = colors[Math.floor(Math.random() * colors.length)];
       }
 
       update() {
-        this.z -= this.vz;
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.z < 1) {
-          this.reset();
-          this.z = 1500;
+        this.y += this.speed;
+        this.twinklePhase += this.twinkleSpeed;
+        if (this.y > canvas.height) {
+          this.y = -10;
+          this.x = Math.random() * canvas.width;
         }
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
       }
 
       draw() {
-        const scale = 1000 / (1000 + this.z);
-        const x2d = (this.x - canvas.width / 2) * scale + canvas.width / 2;
-        const y2d = (this.y - canvas.height / 2) * scale + canvas.height / 2;
-        const radius = this.radius * scale;
-        const alpha = (1500 - this.z) / 1500;
+        const twinkle = Math.sin(this.twinklePhase) * 0.5 + 0.5;
+        const currentOpacity = this.opacity * twinkle;
 
         const gradient = ctx.createRadialGradient(
-          x2d,
-          y2d,
+          this.x,
+          this.y,
           0,
-          x2d,
-          y2d,
-          radius * 8,
+          this.x,
+          this.y,
+          this.size * 4,
         );
         gradient.addColorStop(
           0,
-          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.6})`,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${currentOpacity * 0.8})`,
         );
         gradient.addColorStop(
-          0.4,
-          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${alpha * 0.3})`,
+          0.5,
+          `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${currentOpacity * 0.4})`,
         );
         gradient.addColorStop(
           1,
@@ -205,23 +201,34 @@ const GreenNikahInvitation = () => {
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(x2d, y2d, radius * 8, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = `rgba(${this.color.r + 40}, ${this.color.g + 40}, ${this.color.b + 40}, ${alpha})`;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.twinklePhase * 0.5);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${currentOpacity})`;
         ctx.beginPath();
-        ctx.arc(x2d, y2d, radius, 0, Math.PI * 2);
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+          const x = Math.cos(angle) * this.size;
+          const y = Math.sin(angle) * this.size;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
         ctx.fill();
+        ctx.restore();
       }
     }
 
-    const particles = Array.from({ length: 120 }, () => new Particle());
+    const stars = Array.from({ length: 150 }, () => new Star());
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((particle) => {
-        particle.update();
-        particle.draw();
+      stars.forEach((star) => {
+        star.update();
+        star.draw();
       });
       requestAnimationFrame(animate);
     };
@@ -352,16 +359,16 @@ const GreenNikahInvitation = () => {
 
   if (!started) {
     return (
-      <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#0a1e14] via-[#1a3d2e] to-[#0a1e14] flex items-center justify-center">
+      <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#19050a] via-[#3d0814] to-[#19050a] flex items-center justify-center">
         <canvas ref={landingCanvasRef} className="fixed inset-0 z-0" />
 
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2e7d32]/30 via-transparent to-transparent pointer-events-none z-10" />
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-[#D4AF37]/20 via-transparent to-transparent pointer-events-none z-10" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#8B0000]/30 via-transparent to-transparent pointer-events-none z-10" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent pointer-events-none z-10" />
 
         <div className="relative z-40 text-center px-4 animate-fade-in-landing">
           <div className="mb-12">
             <div className="relative inline-block">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#2e7d32] to-[#4caf50] blur-2xl opacity-15 animate-pulse-slow" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] blur-xl opacity-5 animate-pulse-slow" />
               <svg
                 width="120"
                 height="120"
@@ -485,7 +492,7 @@ const GreenNikahInvitation = () => {
             style={{ animationDelay: "0.6s" }}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity animate-pulse-slow" />
-            <div className="relative bg-gradient-to-r from-[#1a4d3a] to-[#2e7d32] px-12 py-5 rounded-full border-2 border-[#D4AF37] shadow-2xl group-hover:scale-105 group-hover:border-[#FFD700] transition-all duration-300">
+            <div className="relative bg-gradient-to-r from-[#5c0a1a] to-[#800020] px-12 py-5 rounded-full border-2 border-[#D4AF37] shadow-2xl group-hover:scale-105 group-hover:border-[#FFD700] transition-all duration-300">
               <span className="text-xl font-cinzel text-[#edece4] tracking-[0.2em] uppercase group-hover:tracking-[0.25em] transition-all duration-300">
                 Open Invitation
               </span>
@@ -594,16 +601,17 @@ const GreenNikahInvitation = () => {
   }
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#0a1e14] via-[#1a3d2e] to-[#0a1e14] flex items-center justify-center">
+    <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-[#19050a] via-[#3d0814] to-[#19050a] flex items-center justify-center">
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
+
       <audio
         ref={audioRef}
         loop
         src="/public_Indila_-_Love_story_Orchestra_Version_Slowed_Reverb_256kbps.webm"
       />
 
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2e7d32]/30 via-transparent to-transparent pointer-events-none z-10" />
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-[#D4AF37]/20 via-transparent to-transparent pointer-events-none z-10" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#8B0000]/30 via-transparent to-transparent pointer-events-none z-10" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent pointer-events-none z-10" />
 
       <button
         onClick={toggleMusic}
@@ -612,59 +620,56 @@ const GreenNikahInvitation = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-[#FFD700] rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity" />
         <div className="relative bg-gradient-to-r from-[#D4AF37] to-[#FFD700] p-3 rounded-full shadow-2xl group-hover:scale-110 transition-all duration-300">
           {musicPlaying ? (
-            <Volume2 className="w-6 h-6 text-[#0a1e14]" />
+            <Volume2 className="w-6 h-6 text-[#19050a]" />
           ) : (
-            <VolumeX className="w-6 h-6 text-[#0a1e14]" />
+            <VolumeX className="w-6 h-6 text-[#19050a]" />
           )}
         </div>
       </button>
 
-      {/* Curtains */}
       <div className="fixed inset-0 z-50 pointer-events-none">
         <div
           className={`absolute top-0 left-0 h-full w-1/2 transition-transform duration-[2500ms] ease-out ${curtainsOpen ? "-translate-x-full" : "translate-x-0"}`}
         >
-          <div className="relative w-full h-full bg-gradient-to-r from-[#0d2818] via-[#1b5e20] to-[#2e7d32]">
-            <div className="absolute inset-0 opacity-30">
-              {[...Array(50)].map((_, i) => (
+          <div className="relative w-full h-full bg-gradient-to-r from-[#5c0a1a] via-[#800020] to-[#a0222f]">
+            <div className="absolute inset-0 opacity-20">
+              {[...Array(60)].map((_, i) => (
                 <div
                   key={`left-line-${i}`}
-                  className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-black/40 via-transparent to-black/40"
-                  style={{ left: `${i * 2}%` }}
+                  className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-black/60 via-black/20 to-black/60"
+                  style={{ left: `${i * 1.67}%` }}
                 />
               ))}
             </div>
-            <div className="absolute right-0 top-0 h-full w-40 bg-gradient-to-l from-black/70 via-black/40 to-transparent" />
-            <div className="absolute right-0 top-0 h-full w-3 bg-gradient-to-b from-[#D4AF37] via-[#FFD700] to-[#D4AF37] shadow-[0_0_20px_rgba(255,215,0,0.5)]" />
-            <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/50 to-transparent" />
+            <div className="absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-black/80 via-black/50 to-transparent" />
+            <div className="absolute right-0 top-0 h-full w-2 bg-gradient-to-b from-[#D4AF37] via-[#FFD700] to-[#D4AF37] shadow-[0_0_30px_rgba(255,215,0,0.6)]" />
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/60 to-transparent" />
           </div>
         </div>
 
         <div
           className={`absolute top-0 right-0 h-full w-1/2 transition-transform duration-[2500ms] ease-out ${curtainsOpen ? "translate-x-full" : "translate-x-0"}`}
         >
-          <div className="relative w-full h-full bg-gradient-to-l from-[#0d2818] via-[#1b5e20] to-[#2e7d32]">
-            <div className="absolute inset-0 opacity-30">
-              {[...Array(50)].map((_, i) => (
+          <div className="relative w-full h-full bg-gradient-to-l from-[#5c0a1a] via-[#800020] to-[#a0222f]">
+            <div className="absolute inset-0 opacity-20">
+              {[...Array(60)].map((_, i) => (
                 <div
                   key={`right-line-${i}`}
-                  className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-black/40 via-transparent to-black/40"
-                  style={{ right: `${i * 2}%` }}
+                  className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-black/60 via-black/20 to-black/60"
+                  style={{ right: `${i * 1.67}%` }}
                 />
               ))}
             </div>
-            <div className="absolute left-0 top-0 h-full w-40 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-            <div className="absolute left-0 top-0 h-full w-3 bg-gradient-to-b from-[#D4AF37] via-[#FFD700] to-[#D4AF37] shadow-[0_0_20px_rgba(255,215,0,0.5)]" />
-            <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/50 to-transparent" />
+            <div className="absolute left-0 top-0 h-full w-32 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+            <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#D4AF37] via-[#FFD700] to-[#D4AF37] shadow-[0_0_30px_rgba(255,215,0,0.6)]" />
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/60 to-transparent" />
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
       <div
         className={`relative z-40 w-full max-w-[380px] sm:max-w-md md:max-w-xl lg:max-w-2xl mx-4 py-4 sm:py-6 md:py-8 transition-all duration-1500 delay-1000 ${curtainsOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
-        {/* Animated Lanterns on Left Side */}
         <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full -ml-2 md:-ml-6 z-30">
           <div className="absolute -top-8 left-1/2 -translate-x-1/2">
             <svg width="40" height="40" viewBox="0 0 40 40">
@@ -672,11 +677,11 @@ const GreenNikahInvitation = () => {
                 cx="20"
                 cy="8"
                 r="4"
-                fill="#8B7355"
+                fill="#5c0a1a"
                 stroke="#D4AF37"
                 strokeWidth="1"
               />
-              <rect x="18" y="8" width="4" height="6" fill="#8B7355" />
+              <rect x="18" y="8" width="4" height="6" fill="#5c0a1a" />
               <circle
                 cx="20"
                 cy="8"
@@ -697,15 +702,15 @@ const GreenNikahInvitation = () => {
             >
               <defs>
                 <linearGradient
-                  id="lantern-gradient-left"
+                  id="maroon-lantern"
                   x1="0%"
                   y1="0%"
                   x2="0%"
                   y2="100%"
                 >
-                  <stop offset="0%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#1e4d2b" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#2d5a3d" stopOpacity="0.9" />
+                  <stop offset="0%" stopColor="#800020" stopOpacity="0.95" />
+                  <stop offset="50%" stopColor="#5c0a1a" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#800020" stopOpacity="0.95" />
                 </linearGradient>
               </defs>
               <line
@@ -720,14 +725,14 @@ const GreenNikahInvitation = () => {
               <path
                 d="M 25 25 Q 40 20 55 25 L 52 35 L 28 35 Z"
                 fill="#D4AF37"
-                stroke="#8B7355"
+                stroke="#5c0a1a"
                 strokeWidth="1"
               />
               <ellipse cx="40" cy="25" rx="15" ry="4" fill="#FFD700" />
               <path
                 d="M 28 35 L 25 75 Q 25 80 30 82 L 50 82 Q 55 80 55 75 L 52 35 Z"
-                fill="url(#lantern-gradient-left)"
-                stroke="#8B7355"
+                fill="url(#maroon-lantern)"
+                stroke="#5c0a1a"
                 strokeWidth="1.5"
               />
               <rect
@@ -735,7 +740,7 @@ const GreenNikahInvitation = () => {
                 y="40"
                 width="20"
                 height="35"
-                fill="rgba(255,215,0,0.3)"
+                fill="rgba(255,215,0,0.25)"
                 stroke="#D4AF37"
                 strokeWidth="0.5"
               />
@@ -746,11 +751,11 @@ const GreenNikahInvitation = () => {
                 fill="#FFD700"
                 className="lantern-glow"
               />
-              <ellipse cx="40" cy="82" rx="10" ry="3" fill="#8B7355" />
+              <ellipse cx="40" cy="82" rx="10" ry="3" fill="#5c0a1a" />
               <path
                 d="M 30 82 Q 40 88 50 82"
                 fill="#D4AF37"
-                stroke="#8B7355"
+                stroke="#5c0a1a"
                 strokeWidth="1"
               />
               <line
@@ -792,7 +797,6 @@ const GreenNikahInvitation = () => {
           </div>
         </div>
 
-        {/* Animated Lanterns on Right Side */}
         <div className="hidden sm:block absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full mr-2 md:mr-6 z-30">
           <div className="absolute -top-8 left-1/2 -translate-x-1/2">
             <svg width="40" height="40" viewBox="0 0 40 40">
@@ -800,11 +804,11 @@ const GreenNikahInvitation = () => {
                 cx="20"
                 cy="8"
                 r="4"
-                fill="#8B7355"
+                fill="#5c0a1a"
                 stroke="#D4AF37"
                 strokeWidth="1"
               />
-              <rect x="18" y="8" width="4" height="6" fill="#8B7355" />
+              <rect x="18" y="8" width="4" height="6" fill="#5c0a1a" />
               <circle
                 cx="20"
                 cy="8"
@@ -823,19 +827,6 @@ const GreenNikahInvitation = () => {
               viewBox="0 0 80 120"
               className="drop-shadow-2xl md:w-[70px] md:h-[110px]"
             >
-              <defs>
-                <linearGradient
-                  id="lantern-gradient-right"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#1e4d2b" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#2d5a3d" stopOpacity="0.9" />
-                </linearGradient>
-              </defs>
               <line
                 x1="40"
                 y1="0"
@@ -848,14 +839,14 @@ const GreenNikahInvitation = () => {
               <path
                 d="M 25 25 Q 40 20 55 25 L 52 35 L 28 35 Z"
                 fill="#D4AF37"
-                stroke="#8B7355"
+                stroke="#5c0a1a"
                 strokeWidth="1"
               />
               <ellipse cx="40" cy="25" rx="15" ry="4" fill="#FFD700" />
               <path
                 d="M 28 35 L 25 75 Q 25 80 30 82 L 50 82 Q 55 80 55 75 L 52 35 Z"
-                fill="url(#lantern-gradient-right)"
-                stroke="#8B7355"
+                fill="url(#maroon-lantern)"
+                stroke="#5c0a1a"
                 strokeWidth="1.5"
               />
               <rect
@@ -863,7 +854,7 @@ const GreenNikahInvitation = () => {
                 y="40"
                 width="20"
                 height="35"
-                fill="rgba(255,215,0,0.3)"
+                fill="rgba(255,215,0,0.25)"
                 stroke="#D4AF37"
                 strokeWidth="0.5"
               />
@@ -874,11 +865,11 @@ const GreenNikahInvitation = () => {
                 fill="#FFD700"
                 className="lantern-glow"
               />
-              <ellipse cx="40" cy="82" rx="10" ry="3" fill="#8B7355" />
+              <ellipse cx="40" cy="82" rx="10" ry="3" fill="#5c0a1a" />
               <path
                 d="M 30 82 Q 40 88 50 82"
                 fill="#D4AF37"
-                stroke="#8B7355"
+                stroke="#5c0a1a"
                 strokeWidth="1"
               />
               <line
@@ -921,15 +912,14 @@ const GreenNikahInvitation = () => {
         </div>
 
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/30 via-[#FFD700]/30 to-[#D4AF37]/30 rounded-2xl blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 via-[#FFD700]/20 to-[#D4AF37]/20 rounded-2xl " />
 
-          <div className="relative bg-gradient-to-br from-[#1a4d3a] via-[#1e5542] to-[#1a4d3a] rounded-2xl shadow-[0_20px_80px_rgba(0,0,0,0.6)] overflow-hidden border-2 border-[#D4AF37]/40">
-            {/* Islamic Pattern Background */}
+          <div className="relative bg-gradient-to-br from-[#380711] via-[#73031f] to-[#380711] rounded-2xl shadow-[0_20px_80px_rgba(0,0,0,0.6)] overflow-hidden border-2 border-[#D4AF37]/40">
             <div className="absolute inset-0 opacity-10 pointer-events-none">
               <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <pattern
-                    id="islamic-pattern"
+                    id="star-pattern"
                     x="0"
                     y="0"
                     width="80"
@@ -986,18 +976,15 @@ const GreenNikahInvitation = () => {
                     />
                   </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#islamic-pattern)" />
+                <rect width="100%" height="100%" fill="url(#star-pattern)" />
               </svg>
             </div>
 
-            {/* Top Ornamental Pattern */}
             <div className="absolute top-0 left-0 right-0 h-20 overflow-hidden z-10">
               <OrnamentalPattern className="w-full h-full" />
             </div>
 
-            {/* Content */}
             <div className="relative px-6 sm:px-8 md:px-10 lg:px-12 pt-20 sm:pt-22 md:pt-24 pb-8 sm:pb-9 md:pb-10">
-              {/* Bismillah */}
               <div
                 className="text-center mb-3 sm:mb-4 animate-fade-in"
                 style={{ animationDelay: "1.3s" }}
@@ -1010,7 +997,6 @@ const GreenNikahInvitation = () => {
                 </p>
               </div>
 
-              {/* Quranic Verse */}
               <div
                 className="text-center mb-5 sm:mb-6 animate-fade-in"
                 style={{ animationDelay: "1.5s" }}
@@ -1028,7 +1014,6 @@ const GreenNikahInvitation = () => {
                 </div>
               </div>
 
-              {/* Divider */}
               <div className="flex items-center justify-center mb-5 sm:mb-6">
                 <div className="h-px w-16 sm:w-20 bg-gradient-to-r from-transparent via-[#FFD700] to-[#FFD700]" />
                 <div className="mx-2 sm:mx-3">
@@ -1047,7 +1032,6 @@ const GreenNikahInvitation = () => {
                 <div className="h-px w-16 sm:w-20 bg-gradient-to-l from-transparent via-[#FFD700] to-[#FFD700]" />
               </div>
 
-              {/* Invitation Text */}
               <div
                 className="text-center mb-5 sm:mb-6 animate-fade-in-up"
                 style={{ animationDelay: "1.8s" }}
@@ -1061,20 +1045,21 @@ const GreenNikahInvitation = () => {
                 <h1 className="text-4xl md:text-5xl font-great-vibes text-[#FFD700] mb-1 leading-tight px-2">
                   Nikah Ceremony
                 </h1>
-                <p className="text-lg md:text-xl font-allura text-[#D4AF37] mt-1">
+                <p className="text-lg md:text-xl font-allura text-[#ffffff] mt-1">
                   of
                 </p>
               </div>
 
-              {/* Names */}
               <div
                 className="text-center mb-6 sm:mb-7 md:mb-8 space-y-2 sm:space-y-3 animate-slide-up"
                 style={{ animationDelay: "2s" }}
               >
                 <h2 className="text-4xl sm:text-5xl md:text-6xl font-great-vibes text-[#FFD700] leading-tight px-2">
-                  Mehdi
+                 Mehdi Kazimi
                 </h2>
-
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-great-vibes text-[#ffffff] leading-tight px-2">
+                  Mohammad Juma
+                </h2>
                 <div className="flex items-center justify-center gap-3 sm:gap-4 my-2 sm:my-3">
                   <div className="h-px w-12 sm:w-14 bg-gradient-to-r from-transparent to-[#FFD700]" />
                   <span className="text-xs sm:text-sm font-cinzel text-[#FFF8DC] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
@@ -1084,20 +1069,21 @@ const GreenNikahInvitation = () => {
                 </div>
 
                 <h2 className="text-4xl sm:text-5xl md:text-6xl font-great-vibes text-[#FFD700] leading-tight px-2">
-                  Madina
+                  Madina Zahidi
+                </h2>
+                <h2 className="text-2xl sm:text-2xl md:text-3xl font-great-vibes text-[#ffffff] leading-tight px-2">
+                  Baz Mohammad
                 </h2>
               </div>
 
-              {/* Event Details */}
               <div
                 className="text-center mb-5 sm:mb-6 animate-scale-in"
                 style={{ animationDelay: "2.2s" }}
               >
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/10 to-transparent rounded-lg" />
-                  <div className="relative bg-gradient-to-br from-[#1a3d2e]/50 to-[#2d5a3d]/50 rounded-lg px-4 sm:px-5 md:px-6 py-4 sm:py-5 border border-[#D4AF37]/30 backdrop-blur-sm">
+                  <div className="relative bg-gradient-to-br from-[#5c0a1a]/50 to-[#800020]/50 rounded-lg px-4 sm:px-5 md:px-6 py-4 sm:py-5 border border-[#D4AF37]/30 backdrop-blur-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-                      {/* Date */}
                       <div className="group">
                         <div className="flex items-center justify-center mb-2">
                           <svg
@@ -1141,16 +1127,15 @@ const GreenNikahInvitation = () => {
                               strokeWidth="1.5"
                             />
                           </svg>
-                          <p className="text-[10px] sm:text-xs font-cinzel text-[#D4AF37] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
+                          <p className="text-[11px] sm:text-xs font-cinzel text-[#ffd900] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
                             Date
                           </p>
                         </div>
-                        <p className="text-base sm:text-lg md:text-xl font-allura text-[#FFD700]">
+                        <p className="text-base sm:text-lg md:text-xl font-allura text-[#e5e3dc]">
                           February 10, 2026
                         </p>
                       </div>
 
-                      {/* Time */}
                       <div className="group">
                         <div className="flex items-center justify-center mb-2">
                           <svg
@@ -1184,16 +1169,15 @@ const GreenNikahInvitation = () => {
                               strokeWidth="1.5"
                             />
                           </svg>
-                          <p className="text-[10px] sm:text-xs font-cinzel text-[#D4AF37] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
+                          <p className="text-[11px] sm:text-xs font-cinzel text-[#D4AF37] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
                             Time
                           </p>
                         </div>
-                        <p className="text-base sm:text-lg md:text-xl font-allura text-[#FFD700]">
+                        <p className="text-base sm:text-lg md:text-xl font-allura text-[#ffffff]">
                           12:00 PM
                         </p>
                       </div>
 
-                      {/* Venue */}
                       <div className="group">
                         <div className="flex items-center justify-center mb-2">
                           <svg
@@ -1221,12 +1205,12 @@ const GreenNikahInvitation = () => {
                               strokeWidth="1.5"
                             />
                           </svg>
-                          <p className="text-[10px] sm:text-xs font-cinzel text-[#D4AF37] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
+                          <p className="text-[11px] sm:text-xs font-cinzel text-[#D4AF37] tracking-[0.25em] sm:tracking-[0.3em] uppercase">
                             Venue
                           </p>
                         </div>
-                        <p className="text-base sm:text-lg md:text-xl font-allura text-[#FFD700]">
-                          Grand Mosque Hall
+                        <p className="text-base sm:text-lg md:text-xl font-allura text-[#ffffff]">
+                          Bride's Home
                         </p>
                       </div>
                     </div>
@@ -1235,12 +1219,10 @@ const GreenNikahInvitation = () => {
               </div>
             </div>
 
-            {/* Bottom Ornamental Pattern */}
             <div className="absolute bottom-0 left-0 right-0 h-20 overflow-hidden rotate-180 z-10">
               <OrnamentalPattern className="w-full h-full" />
             </div>
 
-            {/* Bottom Border */}
             <div className="h-1 bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#D4AF37]" />
           </div>
         </div>
@@ -1366,4 +1348,4 @@ const GreenNikahInvitation = () => {
   );
 };
 
-export default GreenNikahInvitation;
+export default MaroonNikahInvitation;
